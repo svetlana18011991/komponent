@@ -11,14 +11,40 @@ let stats = {
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeRecognitionTrainer();
-    initializeEquationInputs();
-    initializeHintToggles();
+    initializeErrorTrainer();
+    initializeEquationTrainers();
     initializeResetButton();
     updateResults();
 });
 
 // ============================================
-// ТРЕНАЖЁР РАСПОЗНАВАНИЯ КОМПОНЕНТОВ
+// ОБЩИЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ============================================
+
+function shuffleArray(items) {
+    const array = [...items];
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function pickDistinctSet(bank, count, lastIds) {
+    let candidates = bank.filter(item => !lastIds.has(item.id));
+    if (candidates.length < count) candidates = bank;
+    return shuffleArray(candidates).slice(0, count);
+}
+
+function animateRefresh(element) {
+    if (!element) return;
+    element.classList.remove('recognition-refresh');
+    void element.offsetWidth;
+    element.classList.add('recognition-refresh');
+}
+
+// ============================================
+// ЗАДАНИЕ 1. РАСПОЗНАВАНИЕ КОМПОНЕНТОВ
 // ============================================
 
 const componentOptions = [
@@ -91,33 +117,17 @@ let lastRecognitionIds = new Set();
 
 function initializeRecognitionTrainer() {
     renderRecognitionTasks();
-
-    const shuffleButton = document.getElementById('shuffle-recognition-btn');
-    if (shuffleButton) {
-        shuffleButton.addEventListener('click', function() {
-            renderRecognitionTasks(true);
-        });
-    }
-}
-
-function shuffleArray(items) {
-    const array = [...items];
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
+    const button = document.getElementById('shuffle-recognition-btn');
+    if (button) button.addEventListener('click', () => renderRecognitionTasks(true));
 }
 
 function pickRecognitionSet() {
     const selected = [];
-
     Object.values(recognitionBank).forEach(group => {
         let candidates = group.filter(item => !lastRecognitionIds.has(item.id));
         if (candidates.length < 2) candidates = group;
         selected.push(...shuffleArray(candidates).slice(0, 2));
     });
-
     return shuffleArray(selected);
 }
 
@@ -147,21 +157,229 @@ function renderRecognitionTasks(animate = false) {
             </div>`;
     }).join('');
 
-    initializeSelects();
+    initializeSelects(grid);
+    if (animate) animateRefresh(grid);
+}
 
-    if (animate) {
-        grid.classList.remove('recognition-refresh');
-        void grid.offsetWidth;
-        grid.classList.add('recognition-refresh');
-    }
+// ============================================
+// ЗАДАНИЕ 2. НАЙДИ ОШИБКУ
+// ============================================
+
+const errorRuleOptions = [
+    { value: 'unknown-addend', label: 'Чтобы найти неизвестное слагаемое, нужно из суммы вычесть известное слагаемое.' },
+    { value: 'unknown-minuend', label: 'Чтобы найти неизвестное уменьшаемое, нужно к разности прибавить вычитаемое.' },
+    { value: 'unknown-subtrahend', label: 'Чтобы найти неизвестное вычитаемое, нужно из уменьшаемого вычесть разность.' },
+    { value: 'unknown-factor', label: 'Чтобы найти неизвестный множитель, нужно произведение разделить на известный множитель.' },
+    { value: 'unknown-dividend', label: 'Чтобы найти неизвестное делимое, нужно частное умножить на делитель.' },
+    { value: 'unknown-divisor', label: 'Чтобы найти неизвестный делитель, нужно делимое разделить на частное.' },
+    { value: 'no-error', label: 'Решение ученика верное, исправлять ничего не нужно.' }
+];
+
+const errorBank = [
+    { id: 'e1', equation: '35 − x = 12', solution: 'x = 35 + 12', answer: 'unknown-subtrahend' },
+    { id: 'e2', equation: 'x − 8 = 19', solution: 'x = 19 − 8', answer: 'unknown-minuend' },
+    { id: 'e3', equation: '56 ÷ x = 8', solution: 'x = 56 × 8', answer: 'unknown-divisor' },
+    { id: 'e4', equation: 'x × 6 = 48', solution: 'x = 48 − 6', answer: 'unknown-factor' },
+    { id: 'e5', equation: 'x + 17 = 45', solution: 'x = 45 + 17', answer: 'unknown-addend' },
+    { id: 'e6', equation: 'x ÷ 7 = 8', solution: 'x = 8 ÷ 7', answer: 'unknown-dividend' },
+    { id: 'e7', equation: '63 − x = 28', solution: 'x = 63 − 28', answer: 'no-error' },
+    { id: 'e8', equation: 'x − 14 = 32', solution: 'x = 32 + 14', answer: 'no-error' },
+    { id: 'e9', equation: '72 ÷ x = 9', solution: 'x = 9 ÷ 72', answer: 'unknown-divisor' },
+    { id: 'e10', equation: 'x × 8 = 64', solution: 'x = 64 + 8', answer: 'unknown-factor' },
+    { id: 'e11', equation: 'x ÷ 6 = 7', solution: 'x = 7 + 6', answer: 'unknown-dividend' },
+    { id: 'e12', equation: '19 + x = 54', solution: 'x = 54 − 19', answer: 'no-error' }
+];
+
+let lastErrorIds = new Set();
+
+function initializeErrorTrainer() {
+    renderErrorTasks();
+    const button = document.getElementById('shuffle-error-btn');
+    if (button) button.addEventListener('click', () => renderErrorTasks(true));
+}
+
+function renderErrorTasks(animate = false) {
+    const grid = document.getElementById('error-tasks-grid');
+    if (!grid) return;
+
+    const tasks = pickDistinctSet(errorBank, 4, lastErrorIds);
+    lastErrorIds = new Set(tasks.map(task => task.id));
+
+    grid.innerHTML = shuffleArray(tasks).map(task => {
+        const correct = errorRuleOptions.find(option => option.value === task.answer);
+        const distractors = shuffleArray(errorRuleOptions.filter(option => option.value !== task.answer)).slice(0, 3);
+        const options = shuffleArray([correct, ...distractors])
+            .map(option => `<option value="${option.value}">${option.label}</option>`)
+            .join('');
+
+        return `
+            <div class="task-card error-card">
+                <div class="error-equation">${task.equation}</div>
+                <div class="student-solution"><span>Решение ученика:</span> ${task.solution}</div>
+                <p class="error-question">Как нужно рассуждать правильно?</p>
+                <select class="task-select" data-answer="${task.answer}" aria-label="Выбери верное правило">
+                    <option value="">-- Выбери правило --</option>
+                    ${options}
+                </select>
+                <div class="task-feedback"></div>
+            </div>`;
+    }).join('');
+
+    initializeSelects(grid);
+    if (animate) animateRefresh(grid);
+}
+
+// ============================================
+// ЗАДАНИЯ 3–5. БАНКИ УРАВНЕНИЙ
+// ============================================
+
+const simpleEquationBank = {
+    addend: [
+        { id: 'sa1', type: 'Сложение', expression: 'x + 15 = 42', answer: '27', h1: 'Определи роль x: здесь x — неизвестное слагаемое.', h2: 'Правило: чтобы найти неизвестное слагаемое, нужно из суммы вычесть известное слагаемое.', h3: 'Первый шаг: из 42 вычти 15. Полученное число и будет значением x.' },
+        { id: 'sa2', type: 'Сложение', expression: '18 + x = 53', answer: '35', h1: 'Определи роль x: здесь x — неизвестное слагаемое.', h2: 'Правило: чтобы найти неизвестное слагаемое, нужно из суммы вычесть известное слагаемое.', h3: 'Первый шаг: из 53 вычти 18. Полученное число и будет значением x.' },
+        { id: 'sa3', type: 'Сложение', expression: 'x + 24 = 61', answer: '37', h1: 'Определи роль x: здесь x — неизвестное слагаемое.', h2: 'Правило: чтобы найти неизвестное слагаемое, нужно из суммы вычесть известное слагаемое.', h3: 'Первый шаг: из 61 вычти 24. Полученное число и будет значением x.' }
+    ],
+    minuend: [
+        { id: 'sm1', type: 'Вычитание (уменьшаемое)', expression: 'x − 8 = 19', answer: '27', h1: 'Определи роль x: здесь x — неизвестное уменьшаемое.', h2: 'Правило: чтобы найти неизвестное уменьшаемое, нужно к разности прибавить вычитаемое.', h3: 'Первый шаг: к 19 прибавь 8. Полученное число и будет значением x.' },
+        { id: 'sm2', type: 'Вычитание (уменьшаемое)', expression: 'x − 17 = 36', answer: '53', h1: 'Определи роль x: здесь x — неизвестное уменьшаемое.', h2: 'Правило: чтобы найти неизвестное уменьшаемое, нужно к разности прибавить вычитаемое.', h3: 'Первый шаг: к 36 прибавь 17. Полученное число и будет значением x.' },
+        { id: 'sm3', type: 'Вычитание (уменьшаемое)', expression: 'x − 29 = 44', answer: '73', h1: 'Определи роль x: здесь x — неизвестное уменьшаемое.', h2: 'Правило: чтобы найти неизвестное уменьшаемое, нужно к разности прибавить вычитаемое.', h3: 'Первый шаг: к 44 прибавь 29. Полученное число и будет значением x.' }
+    ],
+    subtrahend: [
+        { id: 'ss1', type: 'Вычитание (вычитаемое)', expression: '35 − x = 12', answer: '23', h1: 'Определи роль x: здесь x — неизвестное вычитаемое.', h2: 'Правило: чтобы найти неизвестное вычитаемое, нужно из уменьшаемого вычесть разность.', h3: 'Первый шаг: из 35 вычти 12. Полученное число и будет значением x.' },
+        { id: 'ss2', type: 'Вычитание (вычитаемое)', expression: '64 − x = 29', answer: '35', h1: 'Определи роль x: здесь x — неизвестное вычитаемое.', h2: 'Правило: чтобы найти неизвестное вычитаемое, нужно из уменьшаемого вычесть разность.', h3: 'Первый шаг: из 64 вычти 29. Полученное число и будет значением x.' },
+        { id: 'ss3', type: 'Вычитание (вычитаемое)', expression: '91 − x = 47', answer: '44', h1: 'Определи роль x: здесь x — неизвестное вычитаемое.', h2: 'Правило: чтобы найти неизвестное вычитаемое, нужно из уменьшаемого вычесть разность.', h3: 'Первый шаг: из 91 вычти 47. Полученное число и будет значением x.' }
+    ],
+    factor: [
+        { id: 'sf1', type: 'Умножение (множитель)', expression: 'x × 6 = 48', answer: '8', h1: 'Определи роль x: здесь x — неизвестный множитель.', h2: 'Правило: чтобы найти неизвестный множитель, нужно произведение разделить на известный множитель.', h3: 'Первый шаг: 48 раздели на 6. Полученное число и будет значением x.' },
+        { id: 'sf2', type: 'Умножение (множитель)', expression: '7 × x = 63', answer: '9', h1: 'Определи роль x: здесь x — неизвестный множитель.', h2: 'Правило: чтобы найти неизвестный множитель, нужно произведение разделить на известный множитель.', h3: 'Первый шаг: 63 раздели на 7. Полученное число и будет значением x.' },
+        { id: 'sf3', type: 'Умножение (множитель)', expression: 'x × 9 = 72', answer: '8', h1: 'Определи роль x: здесь x — неизвестный множитель.', h2: 'Правило: чтобы найти неизвестный множитель, нужно произведение разделить на известный множитель.', h3: 'Первый шаг: 72 раздели на 9. Полученное число и будет значением x.' }
+    ],
+    dividend: [
+        { id: 'sd1', type: 'Деление (делимое)', expression: 'x ÷ 5 = 9', answer: '45', h1: 'Определи роль x: здесь x — неизвестное делимое.', h2: 'Правило: чтобы найти неизвестное делимое, нужно частное умножить на делитель.', h3: 'Первый шаг: 9 умножь на 5. Полученное число и будет значением x.' },
+        { id: 'sd2', type: 'Деление (делимое)', expression: 'x ÷ 8 = 7', answer: '56', h1: 'Определи роль x: здесь x — неизвестное делимое.', h2: 'Правило: чтобы найти неизвестное делимое, нужно частное умножить на делитель.', h3: 'Первый шаг: 7 умножь на 8. Полученное число и будет значением x.' },
+        { id: 'sd3', type: 'Деление (делимое)', expression: 'x ÷ 6 = 12', answer: '72', h1: 'Определи роль x: здесь x — неизвестное делимое.', h2: 'Правило: чтобы найти неизвестное делимое, нужно частное умножить на делитель.', h3: 'Первый шаг: 12 умножь на 6. Полученное число и будет значением x.' }
+    ],
+    divisor: [
+        { id: 'sv1', type: 'Деление (делитель)', expression: '56 ÷ x = 8', answer: '7', h1: 'Определи роль x: здесь x — неизвестный делитель.', h2: 'Правило: чтобы найти неизвестный делитель, нужно делимое разделить на частное.', h3: 'Первый шаг: 56 раздели на 8. Полученное число и будет значением x.' },
+        { id: 'sv2', type: 'Деление (делитель)', expression: '81 ÷ x = 9', answer: '9', h1: 'Определи роль x: здесь x — неизвестный делитель.', h2: 'Правило: чтобы найти неизвестный делитель, нужно делимое разделить на частное.', h3: 'Первый шаг: 81 раздели на 9. Полученное число и будет значением x.' },
+        { id: 'sv3', type: 'Деление (делитель)', expression: '96 ÷ x = 12', answer: '8', h1: 'Определи роль x: здесь x — неизвестный делитель.', h2: 'Правило: чтобы найти неизвестный делитель, нужно делимое разделить на частное.', h3: 'Первый шаг: 96 раздели на 12. Полученное число и будет значением x.' }
+    ]
+};
+
+const middleEquationBank = [
+    { id: 'me1', type: 'Два действия (сложение + умножение)', expression: '(x + 3) × 4 = 28', answer: '4', h1: 'Посмотри на (x + 3) как на один неизвестный множитель.', h2: 'Сначала примени правило для неизвестного множителя: произведение нужно разделить на известный множитель.', h3: 'Сначала выполни 28 ÷ 4, а затем из полученной суммы вычти 3.' },
+    { id: 'me2', type: 'Два действия (вычитание + умножение)', expression: '(x − 2) × 5 = 35', answer: '9', h1: 'Посмотри на (x − 2) как на один неизвестный множитель.', h2: 'Сначала примени правило для неизвестного множителя: произведение нужно разделить на известный множитель.', h3: 'Сначала выполни 35 ÷ 5, а затем к полученной разности прибавь 2.' },
+    { id: 'me3', type: 'Два действия (деление + сложение)', expression: 'x ÷ 3 + 5 = 13', answer: '24', h1: 'Посмотри на x ÷ 3 как на неизвестное слагаемое.', h2: 'Сначала примени правило для неизвестного слагаемого: из суммы нужно вычесть известное слагаемое.', h3: 'Сначала выполни 13 − 5, а затем полученное частное умножь на 3.' },
+    { id: 'me4', type: 'Два действия (умножение + вычитание)', expression: 'x × 2 − 6 = 14', answer: '10', h1: 'Посмотри на x × 2 как на неизвестное уменьшаемое.', h2: 'Сначала примени правило для неизвестного уменьшаемого: к разности нужно прибавить вычитаемое.', h3: 'Сначала выполни 14 + 6, а затем полученное произведение раздели на 2.' },
+    { id: 'me5', type: 'Два действия (деление + вычитание)', expression: '42 ÷ x − 1 = 5', answer: '7', h1: 'Посмотри на 42 ÷ x как на неизвестное уменьшаемое.', h2: 'Сначала примени правило для неизвестного уменьшаемого: к разности нужно прибавить вычитаемое.', h3: 'Сначала выполни 5 + 1. Затем, чтобы найти делитель, 42 раздели на полученное частное.' },
+    { id: 'me6', type: 'Два действия (умножение + сложение)', expression: 'x × 3 + 7 = 28', answer: '7', h1: 'Посмотри на x × 3 как на неизвестное слагаемое.', h2: 'Сначала примени правило для неизвестного слагаемого: из суммы нужно вычесть известное слагаемое.', h3: 'Сначала выполни 28 − 7, а затем полученное произведение раздели на 3.' },
+    { id: 'me7', type: 'Два действия (сложение + умножение)', expression: '(x + 5) × 3 = 36', answer: '7', h1: 'Посмотри на (x + 5) как на один неизвестный множитель.', h2: 'Сначала найди неизвестный множитель: произведение раздели на известный множитель.', h3: 'Сначала выполни 36 ÷ 3, а затем из полученной суммы вычти 5.' },
+    { id: 'me8', type: 'Два действия (вычитание + умножение)', expression: '(x − 4) × 6 = 30', answer: '9', h1: 'Посмотри на (x − 4) как на один неизвестный множитель.', h2: 'Сначала найди неизвестный множитель: произведение раздели на известный множитель.', h3: 'Сначала выполни 30 ÷ 6, а затем к полученной разности прибавь 4.' },
+    { id: 'me9', type: 'Два действия (деление + сложение)', expression: 'x ÷ 4 + 6 = 11', answer: '20', h1: 'Посмотри на x ÷ 4 как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 11 − 6, а затем полученное частное умножь на 4.' },
+    { id: 'me10', type: 'Два действия (умножение + вычитание)', expression: 'x × 5 − 9 = 31', answer: '8', h1: 'Посмотри на x × 5 как на неизвестное уменьшаемое.', h2: 'Сначала найди неизвестное уменьшаемое: к разности прибавь вычитаемое.', h3: 'Сначала выполни 31 + 9, а затем полученное произведение раздели на 5.' },
+    { id: 'me11', type: 'Два действия (деление + сложение)', expression: '72 ÷ x + 2 = 10', answer: '9', h1: 'Посмотри на 72 ÷ x как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 10 − 2. Затем 72 раздели на полученное частное, чтобы найти делитель.' },
+    { id: 'me12', type: 'Два действия (умножение + сложение)', expression: 'x × 4 + 5 = 37', answer: '8', h1: 'Посмотри на x × 4 как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 37 − 5, а затем полученное произведение раздели на 4.' }
+];
+
+const hardEquationBank = [
+    { id: 'he1', type: 'Три действия', expression: '(x + 5) × 2 − 4 = 16', answer: '5', h1: 'Посмотри на (x + 5) × 2 как на неизвестное уменьшаемое.', h2: 'Начинай с последнего действия: чтобы найти неизвестное уменьшаемое, к разности нужно прибавить вычитаемое.', h3: 'Сначала выполни 16 + 4, затем раздели результат на 2, а потом из полученной суммы вычти 5.' },
+    { id: 'he2', type: 'Три действия', expression: '(x − 3) ÷ 2 + 7 = 12', answer: '13', h1: 'Посмотри на (x − 3) ÷ 2 как на неизвестное слагаемое.', h2: 'Начинай с последнего действия: чтобы найти неизвестное слагаемое, из суммы нужно вычесть известное слагаемое.', h3: 'Сначала выполни 12 − 7, затем умножь результат на 2, а потом к полученной разности прибавь 3.' },
+    { id: 'he3', type: 'Три действия', expression: 'x × 4 − 8 + 2 = 18', answer: '6', h1: 'Посмотри на x × 4 − 8 как на неизвестное слагаемое.', h2: 'Начинай с последнего действия: чтобы найти неизвестное слагаемое, из суммы нужно вычесть известное слагаемое.', h3: 'Сначала выполни 18 − 2, затем к результату прибавь 8, а потом раздели на 4.' },
+    { id: 'he4', type: 'Три действия со скобками', expression: '72 ÷ (x + 2) = 8', answer: '7', h1: 'Посмотри на (x + 2) как на неизвестный делитель.', h2: 'Сначала примени правило для неизвестного делителя: делимое нужно разделить на частное.', h3: 'Сначала выполни 72 ÷ 8, а затем из полученной суммы вычти 2.' },
+    { id: 'he5', type: 'Три действия', expression: '(x + 4) × 3 − 6 = 24', answer: '6', h1: 'Посмотри на (x + 4) × 3 как на неизвестное уменьшаемое.', h2: 'Сначала найди неизвестное уменьшаемое: к разности прибавь вычитаемое.', h3: 'Сначала выполни 24 + 6, затем раздели результат на 3, а потом вычти 4.' },
+    { id: 'he6', type: 'Три действия', expression: '(x − 2) × 4 + 5 = 29', answer: '8', h1: 'Посмотри на (x − 2) × 4 как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 29 − 5, затем раздели результат на 4, а потом прибавь 2.' },
+    { id: 'he7', type: 'Три действия', expression: '(x + 1) ÷ 3 + 4 = 7', answer: '8', h1: 'Посмотри на (x + 1) ÷ 3 как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 7 − 4, затем умножь результат на 3, а потом вычти 1.' },
+    { id: 'he8', type: 'Три действия со скобками', expression: '90 ÷ (x + 1) + 1 = 10', answer: '9', h1: 'Посмотри на 90 ÷ (x + 1) как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 10 − 1, затем 90 раздели на полученное частное, а потом вычти 1.' },
+    { id: 'he9', type: 'Три действия', expression: 'x × 5 + 10 − 7 = 38', answer: '7', h1: 'Посмотри на x × 5 + 10 как на неизвестное уменьшаемое.', h2: 'Сначала найди неизвестное уменьшаемое: к разности прибавь вычитаемое.', h3: 'Сначала выполни 38 + 7, затем вычти 10, а потом раздели результат на 5.' },
+    { id: 'he10', type: 'Три действия со скобками', expression: '84 ÷ (x + 3) − 2 = 5', answer: '9', h1: 'Посмотри на 84 ÷ (x + 3) как на неизвестное уменьшаемое.', h2: 'Сначала найди неизвестное уменьшаемое: к разности прибавь вычитаемое.', h3: 'Сначала выполни 5 + 2, затем 84 раздели на полученное частное, а потом вычти 3.' },
+    { id: 'he11', type: 'Три действия', expression: '(x − 5) × 2 + 8 = 20', answer: '11', h1: 'Посмотри на (x − 5) × 2 как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 20 − 8, затем раздели результат на 2, а потом прибавь 5.' },
+    { id: 'he12', type: 'Три действия со скобками', expression: '96 ÷ (x + 4) + 2 = 10', answer: '8', h1: 'Посмотри на 96 ÷ (x + 4) как на неизвестное слагаемое.', h2: 'Сначала найди неизвестное слагаемое: из суммы вычти известное слагаемое.', h3: 'Сначала выполни 10 − 2, затем 96 раздели на полученное частное, а потом вычти 4.' }
+];
+
+let lastSimpleIds = new Set();
+let lastMiddleIds = new Set();
+let lastHardIds = new Set();
+
+function pickSimpleSet() {
+    const selected = [];
+    Object.values(simpleEquationBank).forEach(group => {
+        let candidates = group.filter(item => !lastSimpleIds.has(item.id));
+        if (candidates.length < 1) candidates = group;
+        selected.push(shuffleArray(candidates)[0]);
+    });
+    return shuffleArray(selected);
+}
+
+function renderEquationCard(task, levelClass = '') {
+    return `
+        <div class="equation-card ${levelClass}">
+            <div class="equation-type">${task.type}</div>
+            <div class="equation-problem">${task.expression}</div>
+            <button class="hint-toggle" type="button" aria-expanded="false"
+                data-hint-step="0"
+                data-hint-1="${task.h1}"
+                data-hint-2="${task.h2}"
+                data-hint-3="${task.h3}">
+                <span class="hint-bulb" aria-hidden="true">💡</span>
+                <span class="hint-label">Подсказка 1/3</span>
+            </button>
+            <div class="equation-hint" hidden></div>
+            <input type="number" class="equation-input" placeholder="Введи ответ" data-answer="${task.answer}">
+            <button class="check-btn">Проверить</button>
+            <div class="equation-feedback"></div>
+        </div>`;
+}
+
+function initializeEquationTrainers() {
+    renderSimpleEquations();
+    renderMiddleEquations();
+    renderHardEquations();
+
+    const simpleButton = document.getElementById('shuffle-simple-btn');
+    const middleButton = document.getElementById('shuffle-middle-btn');
+    const hardButton = document.getElementById('shuffle-hard-btn');
+
+    if (simpleButton) simpleButton.addEventListener('click', () => renderSimpleEquations(true));
+    if (middleButton) middleButton.addEventListener('click', () => renderMiddleEquations(true));
+    if (hardButton) hardButton.addEventListener('click', () => renderHardEquations(true));
+}
+
+function renderSimpleEquations(animate = false) {
+    const grid = document.getElementById('simple-equations-grid');
+    if (!grid) return;
+    const tasks = pickSimpleSet();
+    lastSimpleIds = new Set(tasks.map(task => task.id));
+    grid.innerHTML = tasks.map(task => renderEquationCard(task)).join('');
+    bindEquationInteractions(grid);
+    if (animate) animateRefresh(grid);
+}
+
+function renderMiddleEquations(animate = false) {
+    const grid = document.getElementById('middle-equations-grid');
+    if (!grid) return;
+    const tasks = pickDistinctSet(middleEquationBank, 6, lastMiddleIds);
+    lastMiddleIds = new Set(tasks.map(task => task.id));
+    grid.innerHTML = shuffleArray(tasks).map(task => renderEquationCard(task, 'middle')).join('');
+    bindEquationInteractions(grid);
+    if (animate) animateRefresh(grid);
+}
+
+function renderHardEquations(animate = false) {
+    const grid = document.getElementById('hard-equations-grid');
+    if (!grid) return;
+    const tasks = pickDistinctSet(hardEquationBank, 4, lastHardIds);
+    lastHardIds = new Set(tasks.map(task => task.id));
+    grid.innerHTML = shuffleArray(tasks).map(task => renderEquationCard(task, 'hard')).join('');
+    bindEquationInteractions(grid);
+    if (animate) animateRefresh(grid);
 }
 
 // ============================================
 // ЗАДАНИЯ С ВЫБОРОМ ОТВЕТА
 // ============================================
 
-function initializeSelects() {
-    document.querySelectorAll('.task-select').forEach(select => {
+function initializeSelects(root = document) {
+    root.querySelectorAll('.task-select').forEach(select => {
         if (select.dataset.listenerBound === 'true') return;
         select.dataset.listenerBound = 'true';
         select.addEventListener('change', function() {
@@ -186,7 +404,7 @@ function checkSelectAnswer(selectElement) {
         stats.solved++;
         stats.independent++;
         selectElement.dataset.completed = 'true';
-        feedbackElement.textContent = '✓ Верно! Ты правильно применил правило.';
+        feedbackElement.textContent = '✓ Верно! Отличная работа.';
         feedbackElement.classList.remove('incorrect');
         feedbackElement.classList.add('show', 'correct');
         selectElement.disabled = true;
@@ -194,7 +412,7 @@ function checkSelectAnswer(selectElement) {
         animateSuccess(selectElement.closest('.task-card'));
     } else {
         stats.mistakes++;
-        feedbackElement.textContent = 'Пока неверно. Сравни компоненты действия и попробуй ещё раз.';
+        feedbackElement.textContent = 'Пока неверно. Ещё раз проанализируй компоненты и попробуй снова.';
         feedbackElement.classList.remove('correct');
         feedbackElement.classList.add('show', 'incorrect');
         selectElement.value = '';
@@ -207,12 +425,15 @@ function checkSelectAnswer(selectElement) {
 // ТРЁХСТУПЕНЧАТЫЕ ПОДСКАЗКИ
 // ============================================
 
-function initializeHintToggles() {
-    document.querySelectorAll('.hint-toggle').forEach(toggle => {
+function initializeHintToggles(root = document) {
+    root.querySelectorAll('.hint-toggle').forEach(toggle => {
+        if (toggle.dataset.listenerBound === 'true') return;
+        toggle.dataset.listenerBound = 'true';
+
         toggle.addEventListener('click', function() {
             const card = this.closest('.equation-card');
             const hint = card.querySelector('.equation-hint');
-            let currentStep = Number(this.dataset.hintStep || '0');
+            const currentStep = Number(this.dataset.hintStep || '0');
 
             if (currentStep >= 3) {
                 hint.hidden = true;
@@ -246,17 +467,26 @@ function initializeHintToggles() {
 }
 
 // ============================================
-// УРАВНЕНИЯ
+// ПРОВЕРКА УРАВНЕНИЙ
 // ============================================
 
-function initializeEquationInputs() {
-    document.querySelectorAll('.check-btn').forEach(button => {
+function bindEquationInteractions(root) {
+    initializeHintToggles(root);
+    initializeEquationInputs(root);
+}
+
+function initializeEquationInputs(root = document) {
+    root.querySelectorAll('.check-btn').forEach(button => {
+        if (button.dataset.listenerBound === 'true') return;
+        button.dataset.listenerBound = 'true';
         button.addEventListener('click', function() {
             checkEquation(this);
         });
     });
 
-    document.querySelectorAll('.equation-input').forEach(input => {
+    root.querySelectorAll('.equation-input').forEach(input => {
+        if (input.dataset.listenerBound === 'true') return;
+        input.dataset.listenerBound = 'true';
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 this.parentElement.querySelector('.check-btn').click();
@@ -350,51 +580,10 @@ function updateResults() {
 
 function initializeResetButton() {
     const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', resetAllTasks);
-    }
+    if (resetBtn) resetBtn.addEventListener('click', resetAllTasks);
 }
 
 function resetAllTasks() {
-    document.querySelectorAll('.task-select').forEach(select => {
-        select.value = '';
-        select.disabled = false;
-        select.style.opacity = '1';
-        delete select.dataset.completed;
-        const feedback = select.parentElement.querySelector('.task-feedback');
-        if (feedback) feedback.classList.remove('show', 'correct', 'incorrect');
-    });
-
-    document.querySelectorAll('.equation-card').forEach(card => {
-        delete card.dataset.completed;
-        delete card.dataset.hintUsed;
-        delete card.dataset.wrongAttempts;
-    });
-
-    document.querySelectorAll('.equation-input').forEach(input => {
-        input.value = '';
-        input.disabled = false;
-        input.style.opacity = '1';
-        const feedback = input.parentElement.querySelector('.equation-feedback');
-        if (feedback) feedback.classList.remove('show', 'correct', 'incorrect');
-    });
-
-    document.querySelectorAll('.hint-toggle').forEach(toggle => {
-        toggle.dataset.hintStep = '0';
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.querySelector('.hint-label').textContent = 'Подсказка 1/3';
-        const hint = toggle.closest('.equation-card').querySelector('.equation-hint');
-        if (hint) {
-            hint.hidden = true;
-            hint.textContent = '';
-        }
-    });
-
-    document.querySelectorAll('.check-btn').forEach(btn => {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-    });
-
     stats = {
         solved: 0,
         independent: 0,
@@ -403,6 +592,10 @@ function resetAllTasks() {
     };
 
     renderRecognitionTasks(true);
+    renderErrorTasks(true);
+    renderSimpleEquations(true);
+    renderMiddleEquations(true);
+    renderHardEquations(true);
     updateResults();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -435,7 +628,6 @@ function createConfetti(element) {
         confetti.style.borderRadius = '50%';
         confetti.style.pointerEvents = 'none';
         confetti.style.zIndex = '9999';
-
         document.body.appendChild(confetti);
 
         const randomX = (Math.random() - 0.5) * 100;
@@ -446,7 +638,7 @@ function createConfetti(element) {
             { transform: 'translate(0, 0)', opacity: 1 },
             { transform: `translate(${randomX}px, ${randomY}px)`, opacity: 0 }
         ], {
-            duration: duration,
+            duration,
             easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
         });
 
@@ -460,13 +652,15 @@ function createConfetti(element) {
 
 document.addEventListener('focus', function(e) {
     if (e.target.classList.contains('equation-input') || e.target.classList.contains('task-select')) {
-        e.target.parentElement.style.transform = 'scale(1.02)';
+        const card = e.target.closest('.task-card, .equation-card');
+        if (card) card.style.transform = 'scale(1.02)';
     }
 }, true);
 
 document.addEventListener('blur', function(e) {
     if (e.target.classList.contains('equation-input') || e.target.classList.contains('task-select')) {
-        e.target.parentElement.style.transform = 'scale(1)';
+        const card = e.target.closest('.task-card, .equation-card');
+        if (card) card.style.transform = 'scale(1)';
     }
 }, true);
 

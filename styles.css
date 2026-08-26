@@ -409,7 +409,7 @@ body {
 }
 
 
-.recognition-actions {
+.section-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -419,7 +419,7 @@ body {
     z-index: 1;
 }
 
-.recognition-bank-note {
+.bank-note {
     color: #9a9a9a;
     font-size: 0.9em;
 }
@@ -931,12 +931,12 @@ body {
     }
 
 
-    .recognition-actions {
+    .section-actions {
         align-items: stretch;
         flex-direction: column;
     }
 
-    .recognition-bank-note {
+    .bank-note {
         text-align: center;
     }
 

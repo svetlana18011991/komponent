@@ -116,12 +116,10 @@
 <h2>🎯 Задание 1: Распознавание компонентов</h2>
 <p class="section-description">Выбери правильный ответ из списка</p>
 </div>
-<div class="tasks-grid" id="recognition-tasks-grid" aria-live="polite"></div>
-<div class="recognition-actions">
-<span class="recognition-bank-note">В банке 40 примеров · в наборе 8 заданий</span>
-<button class="shuffle-btn" id="shuffle-recognition-btn" type="button" title="Показать новый набор примеров">
-<span aria-hidden="true">🔀</span> Перемешать примеры
-</button>
+<div aria-live="polite" class="tasks-grid" id="recognition-tasks-grid"></div>
+<div class="section-actions">
+<span class="bank-note">В банке 40 примеров · в наборе 8 заданий</span>
+<button class="shuffle-btn" id="shuffle-recognition-btn" title="Показать новый набор заданий" type="button"><span aria-hidden="true">🔀</span> Перемешать задания</button>
 </div>
 </section>
 <!-- Section 3: Простые уравнения -->
@@ -130,279 +128,30 @@
 <h2>🔎 Задание 2: Найди ошибку</h2>
 <p class="section-description">Посмотри на решение ученика и выбери правило, которое поможет его исправить</p>
 </div>
-<div class="error-grid">
-<div class="task-card error-card">
-<div class="error-equation">35 − x = 12</div>
-<div class="student-solution"><span>Решение ученика:</span> x = 35 + 12</div>
-<p class="error-question">Как нужно рассуждать правильно?</p>
-<select class="task-select" data-answer="subtract-difference">
-<option value="">-- Выбери правило --</option>
-<option value="subtract-difference">Чтобы найти неизвестное вычитаемое, нужно из уменьшаемого вычесть разность.</option>
-<option value="add-difference">Чтобы найти неизвестное вычитаемое, нужно к разности прибавить уменьшаемое.</option>
-<option value="divide-difference">Чтобы найти неизвестное вычитаемое, нужно уменьшаемое разделить на разность.</option>
-<option value="no-error">Решение ученика верное, исправлять ничего не нужно.</option>
-</select>
-<div class="task-feedback"></div>
-</div>
-<div class="task-card error-card">
-<div class="error-equation">x − 8 = 19</div>
-<div class="student-solution"><span>Решение ученика:</span> x = 19 − 8</div>
-<p class="error-question">Как нужно рассуждать правильно?</p>
-<select class="task-select" data-answer="add-subtrahend">
-<option value="">-- Выбери правило --</option>
-<option value="subtract-subtrahend">Чтобы найти неизвестное уменьшаемое, нужно из разности вычесть вычитаемое.</option>
-<option value="add-subtrahend">Чтобы найти неизвестное уменьшаемое, нужно к разности прибавить вычитаемое.</option>
-<option value="multiply-subtrahend">Чтобы найти неизвестное уменьшаемое, нужно разность умножить на вычитаемое.</option>
-<option value="no-error">Решение ученика верное, исправлять ничего не нужно.</option>
-</select>
-<div class="task-feedback"></div>
-</div>
-<div class="task-card error-card">
-<div class="error-equation">56 ÷ x = 8</div>
-<div class="student-solution"><span>Решение ученика:</span> x = 56 × 8</div>
-<p class="error-question">Как нужно рассуждать правильно?</p>
-<select class="task-select" data-answer="divide-quotient">
-<option value="">-- Выбери правило --</option>
-<option value="multiply-quotient">Чтобы найти неизвестный делитель, нужно делимое умножить на частное.</option>
-<option value="divide-quotient">Чтобы найти неизвестный делитель, нужно делимое разделить на частное.</option>
-<option value="subtract-quotient">Чтобы найти неизвестный делитель, нужно из делимого вычесть частное.</option>
-<option value="no-error">Решение ученика верное, исправлять ничего не нужно.</option>
-</select>
-<div class="task-feedback"></div>
-</div>
-<div class="task-card error-card">
-<div class="error-equation">x × 6 = 48</div>
-<div class="student-solution"><span>Решение ученика:</span> x = 48 − 6</div>
-<p class="error-question">Как нужно рассуждать правильно?</p>
-<select class="task-select" data-answer="divide-factor">
-<option value="">-- Выбери правило --</option>
-<option value="subtract-factor">Чтобы найти неизвестный множитель, нужно из произведения вычесть известный множитель.</option>
-<option value="add-factor">Чтобы найти неизвестный множитель, нужно к произведению прибавить известный множитель.</option>
-<option value="divide-factor">Чтобы найти неизвестный множитель, нужно произведение разделить на известный множитель.</option>
-<option value="no-error">Решение ученика верное, исправлять ничего не нужно.</option>
-</select>
-<div class="task-feedback"></div>
-</div>
-</div>
-</section><section class="section equations-simple">
+<div aria-live="polite" class="error-grid" id="error-tasks-grid"></div>
+<div class="section-actions"><span class="bank-note">В банке 12 ситуаций · в наборе 4 задания</span><button class="shuffle-btn" id="shuffle-error-btn" title="Показать новый набор заданий" type="button"><span aria-hidden="true">🔀</span> Перемешать задания</button></div></section><section class="section equations-simple">
 <div class="section-header">
 <h2>📖 Задание 3: Простые уравнения</h2>
 <p class="section-description">Найди неизвестное число (x) и проверь свой ответ</p>
 </div>
-<div class="equations-grid">
-<!-- Сложение -->
-<div class="equation-card">
-<div class="equation-type">Сложение</div>
-<div class="equation-problem">x + 15 = 42</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Определи роль x: здесь x — неизвестное слагаемое." data-hint-2="Правило: чтобы найти неизвестное слагаемое, нужно из суммы вычесть известное слагаемое." data-hint-3="Первый шаг: из 42 вычти 15. Полученное число и будет значением x." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="27" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card">
-<div class="equation-type">Вычитание (уменьшаемое)</div>
-<div class="equation-problem">x − 8 = 19</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Определи роль x: здесь x — неизвестное уменьшаемое." data-hint-2="Правило: чтобы найти неизвестное уменьшаемое, нужно к разности прибавить вычитаемое." data-hint-3="Первый шаг: к 19 прибавь 8. Полученное число и будет значением x." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="27" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card">
-<div class="equation-type">Вычитание (вычитаемое)</div>
-<div class="equation-problem">35 − x = 12</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Определи роль x: здесь x — неизвестное вычитаемое." data-hint-2="Правило: чтобы найти неизвестное вычитаемое, нужно из уменьшаемого вычесть разность." data-hint-3="Первый шаг: из 35 вычти 12. Полученное число и будет значением x." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="23" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card">
-<div class="equation-type">Умножение (множитель)</div>
-<div class="equation-problem">x × 6 = 48</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Определи роль x: здесь x — неизвестный множитель." data-hint-2="Правило: чтобы найти неизвестный множитель, нужно произведение разделить на известный множитель." data-hint-3="Первый шаг: 48 раздели на 6. Полученное число и будет значением x." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="8" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card">
-<div class="equation-type">Деление (делимое)</div>
-<div class="equation-problem">x ÷ 5 = 9</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Определи роль x: здесь x — неизвестное делимое." data-hint-2="Правило: чтобы найти неизвестное делимое, нужно частное умножить на делитель." data-hint-3="Первый шаг: 9 умножь на 5. Полученное число и будет значением x." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="45" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card">
-<div class="equation-type">Деление (делитель)</div>
-<div class="equation-problem">56 ÷ x = 8</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Определи роль x: здесь x — неизвестный делитель." data-hint-2="Правило: чтобы найти неизвестный делитель, нужно делимое разделить на частное." data-hint-3="Первый шаг: 56 раздели на 8. Полученное число и будет значением x." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="7" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-</div>
-</section>
+<div aria-live="polite" class="equations-grid" id="simple-equations-grid"></div>
+<div class="section-actions"><span class="bank-note">В банке 18 примеров · в наборе 6 уравнений</span><button class="shuffle-btn" id="shuffle-simple-btn" title="Показать новый набор уравнений" type="button"><span aria-hidden="true">🔀</span> Перемешать задания</button></div></section>
 <!-- Section 4: Уравнения среднего уровня -->
 <section class="section equations-middle">
 <div class="section-header">
 <h2>🚀 Задание 4: Усложняем задачи</h2>
 <p class="section-description">Решай уравнения с несколькими действиями</p>
 </div>
-<div class="equations-grid">
-<div class="equation-card middle">
-<div class="equation-type">Два действия (сложение + умножение)</div>
-<div class="equation-problem">(x + 3) × 4 = 28</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на (x + 3) как на один неизвестный множитель." data-hint-2="Сначала примени правило для неизвестного множителя: произведение нужно разделить на известный множитель." data-hint-3="Сначала выполни 28 ÷ 4, а затем из полученной суммы вычти 3." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="4" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card middle">
-<div class="equation-type">Два действия (вычитание + умножение)</div>
-<div class="equation-problem">(x − 2) × 5 = 35</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на (x − 2) как на один неизвестный множитель." data-hint-2="Сначала примени правило для неизвестного множителя: произведение нужно разделить на известный множитель." data-hint-3="Сначала выполни 35 ÷ 5, а затем к полученной разности прибавь 2." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="9" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card middle">
-<div class="equation-type">Два действия (деление + сложение)</div>
-<div class="equation-problem">x ÷ 3 + 5 = 13</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на x ÷ 3 как на неизвестное слагаемое." data-hint-2="Сначала примени правило для неизвестного слагаемого: из суммы нужно вычесть известное слагаемое." data-hint-3="Сначала выполни 13 − 5, а затем полученное частное умножь на 3." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="24" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card middle">
-<div class="equation-type">Два действия (умножение + вычитание)</div>
-<div class="equation-problem">x × 2 − 6 = 14</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на x × 2 как на неизвестное уменьшаемое." data-hint-2="Сначала примени правило для неизвестного уменьшаемого: к разности нужно прибавить вычитаемое." data-hint-3="Сначала выполни 14 + 6, а затем полученное произведение раздели на 2." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="10" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card middle">
-<div class="equation-type">Два действия (деление + вычитание)</div>
-<div class="equation-problem">42 ÷ x − 1 = 5</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на 42 ÷ x как на неизвестное уменьшаемое." data-hint-2="Сначала примени правило для неизвестного уменьшаемого: к разности нужно прибавить вычитаемое." data-hint-3="Сначала выполни 5 + 1. Затем, чтобы найти делитель, 42 раздели на полученное частное." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="7" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card middle">
-<div class="equation-type">Два действия (умножение + сложение)</div>
-<div class="equation-problem">x × 3 + 7 = 28</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на x × 3 как на неизвестное слагаемое." data-hint-2="Сначала примени правило для неизвестного слагаемого: из суммы нужно вычесть известное слагаемое." data-hint-3="Сначала выполни 28 − 7, а затем полученное произведение раздели на 3." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="7" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-</div>
-</section>
+<div aria-live="polite" class="equations-grid" id="middle-equations-grid"></div>
+<div class="section-actions"><span class="bank-note">В банке 12 примеров · в наборе 6 уравнений</span><button class="shuffle-btn" id="shuffle-middle-btn" title="Показать новый набор уравнений" type="button"><span aria-hidden="true">🔀</span> Перемешать задания</button></div></section>
 <!-- Section 5: Сложные уравнения -->
 <section class="section equations-hard">
 <div class="section-header">
 <h2>⭐ Задание 5: Сложные уравнения</h2>
 <p class="section-description">Для самых смелых! Уравнения с несколькими неизвестными операциями</p>
 </div>
-<div class="equations-grid">
-<div class="equation-card hard">
-<div class="equation-type">Три действия</div>
-<div class="equation-problem">(x + 5) × 2 − 4 = 16</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на (x + 5) × 2 как на неизвестное уменьшаемое." data-hint-2="Начинай с последнего действия: чтобы найти неизвестное уменьшаемое, к разности нужно прибавить вычитаемое." data-hint-3="Сначала выполни 16 + 4, затем раздели результат на 2, а потом из полученной суммы вычти 5." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="5" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card hard">
-<div class="equation-type">Три действия</div>
-<div class="equation-problem">(x − 3) ÷ 2 + 7 = 12</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на (x − 3) ÷ 2 как на неизвестное слагаемое." data-hint-2="Начинай с последнего действия: чтобы найти неизвестное слагаемое, из суммы нужно вычесть известное слагаемое." data-hint-3="Сначала выполни 12 − 7, затем умножь результат на 2, а потом к полученной разности прибавь 3." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="13" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card hard">
-<div class="equation-type">Три действия</div>
-<div class="equation-problem">x × 4 − 8 + 2 = 18</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на x × 4 − 8 как на неизвестное слагаемое." data-hint-2="Начинай с последнего действия: чтобы найти неизвестное слагаемое, из суммы нужно вычесть известное слагаемое." data-hint-3="Сначала выполни 18 − 2, затем к результату прибавь 8, а потом раздели на 4." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="6" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-<div class="equation-card hard">
-<div class="equation-type">Три действия со скобками</div>
-<div class="equation-problem">72 ÷ (x + 2) = 8</div>
-<button aria-expanded="false" class="hint-toggle" data-hint-1="Посмотри на (x + 2) как на неизвестный делитель." data-hint-2="Сначала примени правило для неизвестного делителя: делимое нужно разделить на частное." data-hint-3="Сначала выполни 72 ÷ 8, а затем из полученной суммы вычти 2." data-hint-step="0" type="button">
-<span aria-hidden="true" class="hint-bulb">💡</span>
-<span class="hint-label">Подсказка 1/3</span>
-</button>
-<div class="equation-hint" hidden=""></div>
-<input class="equation-input" data-answer="7" placeholder="Введи ответ" type="number"/>
-<button class="check-btn">Проверить</button>
-<div class="equation-feedback"></div>
-</div>
-</div>
-</section>
+<div aria-live="polite" class="equations-grid" id="hard-equations-grid"></div>
+<div class="section-actions"><span class="bank-note">В банке 12 примеров · в наборе 4 уравнения</span><button class="shuffle-btn" id="shuffle-hard-btn" title="Показать новый набор уравнений" type="button"><span aria-hidden="true">🔀</span> Перемешать задания</button></div></section>
 <!-- Results Section -->
 <section class="section results-section">
 <div class="section-header">
